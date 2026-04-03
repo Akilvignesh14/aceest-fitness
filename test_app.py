@@ -1,19 +1,22 @@
 import pytest
-from app import app
 import os
 import sqlite3
 
-# Define the test database name
-DB_NAME = "test_fitness.db"
+# CRITICAL: Set environment variable BEFORE importing the app
+os.environ["DB_NAME"] = "test_fitness.db"
+
+from app import app, DB_NAME
 
 @pytest.fixture
 def client():
+    """Phase 3: Unit Testing & Validation Framework"""
     app.config['TESTING'] = True
     
-    # Initialize a clean test DB
+    # Setup: Initialize a clean, isolated test database
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY, name TEXT, program TEXT, membership TEXT)")
+    # Inject 'Tester' so the retrieval test can find it
     cur.execute("INSERT INTO clients (name, program, membership) VALUES ('Tester', 'Muscle Gain', 'Active')")
     conn.commit()
     conn.close()
@@ -21,18 +24,18 @@ def client():
     with app.test_client() as client:
         yield client
     
-    # Cleanup after test - SRE Practice: Leave the environment clean
+    # Teardown: SRE Principle - Clean the environment after tests
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
 
 def test_home_status(client):
-    """Phase 3: Validate logic of the home endpoint"""
+    """Validate the status endpoint logic"""
     res = client.get('/')
     assert res.status_code == 200
     assert b"ACEest Fitness System Online" in res.data
 
 def test_get_client_data(client):
-    """Phase 3: Validate client retrieval logic"""
+    """Validate client retrieval logic - Success Case"""
     res = client.get('/client/Tester')
     assert res.status_code == 200
     data = res.get_json()
@@ -40,6 +43,6 @@ def test_get_client_data(client):
     assert data['program'] == 'Muscle Gain'
 
 def test_client_not_found(client):
-    """Phase 3: Validate error handling (Negative Testing)"""
+    """Validate error handling logic - Negative Case"""
     res = client.get('/client/UnknownUser')
     assert res.status_code == 404

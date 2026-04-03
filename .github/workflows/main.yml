@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: ACEest CI/CD Pipeline
 
 on: [push, pull_request]
 
@@ -6,7 +6,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -14,20 +14,15 @@ jobs:
         with:
           python-version: '3.9'
 
-      # SRE FIX: Install system-level Tkinter dependencies for Ubuntu
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-tk
-
-      - name: Install Python dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest matplotlib  # Ensures these are present even if not in requirements
+          pip install -r requirements.txt
 
-      - name: Run Tests
-        run: pytest
+      - name: Phase 3 & 6 - Automated Testing (Pytest)
+        run: |
+          python -m pytest
 
-      - name: Build Docker Image
-        run: docker build -t aceest-gym .
+      - name: Phase 4 - Containerization (Docker Build)
+        run: |
+          docker build -t aceest-fitness:latest .
