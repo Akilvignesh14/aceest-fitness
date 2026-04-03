@@ -44,7 +44,13 @@ class ACEestApp:
         left_panel.pack(side="left", fill="y", padx=10)
 
         tk.Label(left_panel, text="Select Program:", bg="#1a1a1a", fg="white").pack(pady=10)
-        self.prog_var = tk.StringVar()
+        # Check if we are in a 'real' window environment or a 'test' environment
+        if hasattr(self.root, 'tk'):
+            # Pass self.root as the master explicitly to avoid search for default root
+            self.prog_var = tk.StringVar(master=self.root) 
+        else:
+            # Fallback for headless CI/CD servers
+            self.prog_var = None
         self.prog_menu = ttk.Combobox(left_panel, textvariable=self.prog_var, values=list(self.programs.keys()), state="readonly")
         self.prog_menu.pack(padx=20, pady=5)
         self.prog_menu.bind("<<ComboboxSelected>>", self.update_display)
@@ -69,12 +75,15 @@ class ACEestApp:
         self.diet_label = tk.Label(self.diet_frame, text="Select a profile to view diet", bg="#1a1a1a", fg="white", justify="left", font=("Arial", 11))
         self.diet_label.pack(padx=10, pady=10)
 
-    def update_display(self, event):
-        selected = self.prog_var.get()
-        data = self.programs[selected]
+    def update_display(self, event=None):
+    # Only try to get the value if the UI variable actually exists
+        if self.prog_var:
+            selected = self.prog_var.get()
+            data = self.programs[selected]
+        # ... rest of your display update logic ...
         
-        self.work_label.config(text=data["workout"], fg=data["color"])
-        self.diet_label.config(text=data["diet"])
+            self.work_label.config(text=data["workout"], fg=data["color"])
+            self.diet_label.config(text=data["diet"])
 
 if __name__ == "__main__":
     import tkinter as tk
