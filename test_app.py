@@ -1,13 +1,13 @@
-import pytest
-from app import app
+from app import ACEestApp
+import tkinter as tk
 
-@pytest.fixture
-def client():
-    return app.test_client()
-
-def test_programs_data(client):
-    """Test that our modularized gym data is loading correctly"""
-    response = client.get('/programs')
-    assert response.status_code == 200
-    # Check if 'Fat Loss' exists in the data we sent
-    assert b"Fat Loss" in response.data
+def test_data_integrity():
+    # Setup a temporary "headless" window for the test
+    root = tk.Tk()
+    app_instance = ACEestApp(root)
+    
+    # Verify the fitness data dictionary is not empty
+    assert len(app_instance.programs) > 0
+    assert "Beginner (BG)" in app_instance.programs
+    
+    root.destroy()
