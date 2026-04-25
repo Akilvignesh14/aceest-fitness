@@ -2,9 +2,7 @@ pipeline {
     agent any
     
     environment {
-        // Your Docker Hub username and the application name
         DOCKER_IMAGE = 'akilvignesh14/aceest-fitness'
-        // Using the Jenkins BUILD_NUMBER as our image tag for easy versioning (e.g., v1.4, v1.5)
         DOCKER_TAG = "v1.${env.BUILD_NUMBER}" 
     }
 
@@ -25,23 +23,30 @@ pipeline {
                 '''
             }
         }
+
+        // --- NEW STAGE FOR TASK 7 ---
+        stage('SonarQube Analysis') {
+            steps {
+                // This 'sonar-server' name must match what you saved in Jenkins System settings
+                withSonarQubeEnv('sonar-server') {
+                    // This command runs the static code analysis [cite: 65]
+                    bat 'sonar-scanner -Dsonar.projectKey=aceest-fitness -Dsonar.sources=.'
+                }
+            }
+        }
         
         stage('Build Docker Image') {
             steps {
-                // Build the image and tag it with both the specific version and 'latest'
                 bat "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ."
             }
         }
         
         stage('Push to Docker Hub') {
             steps {
-                // Securely load the credentials we just created in Jenkins
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                    // Log in to Docker Hub via the terminal
                     bat '''
                     docker login -u "%DOCKER_USER%" -p "%DOCKER_PASS%"
                     '''
-                    // Push both the specific version and the 'latest' tag
                     bat "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     bat "docker push ${DOCKER_IMAGE}:latest"
                 }
