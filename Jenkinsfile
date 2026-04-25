@@ -13,7 +13,7 @@ pipeline {
             steps {
                 // Setting up a virtual environment and installing packages
                 bat '''
-                python -m venv venv
+                "C:\Users\al037\AppData\Local\Programs\Python\Python313\python.exe" -m venv venv
                 call venv\\Scripts\\activate.bat
                 pip install -r requirements.txt
                 '''
