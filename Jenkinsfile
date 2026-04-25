@@ -27,10 +27,16 @@ pipeline {
         // --- NEW STAGE FOR TASK 7 ---
         stage('SonarQube Analysis') {
             steps {
-                // This 'sonar-server' name must match what you saved in Jenkins System settings
-                withSonarQubeEnv('sonar-server') {
-                    // This command runs the static code analysis [cite: 65]
-                    bat 'sonar-scanner -Dsonar.projectKey=aceest-fitness -Dsonar.sources=.'
+                script {
+                    // 1. This variable 'scannerHome' now holds the path where Jenkins installed the scanner
+                    // IMPORTANT: The name 'sonar-scanner' must match what you typed in Manage Jenkins -> Tools
+                    def scannerHome = tool 'sonar-scanner'
+                    
+                    // 2. We use the server configuration we saved in Manage Jenkins -> System
+                    withSonarQubeEnv('sonar-server') {
+                        // 3. We use the dynamic path to run the .bat file specifically for Windows
+                        bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=aceest-fitness -Dsonar.sources=."
+                    }
                 }
             }
         }
